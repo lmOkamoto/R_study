@@ -1,0 +1,644 @@
+---
+title: "Estudo R"
+output:
+  flexdashboard::flex_dashboard:
+    social: menu
+    source_code: embed
+    vertical_layout: fill
+    orientation: rows
+---
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error=TRUE)
+#para limpar as variáveis do ambiente
+rm(list = ls())
+library(flexdashboard)
+library(lubridate)
+library(plotly)
+```
+
+Estruturas de dados
+=======================================================================
+
+
+Row {data-height=650 data-width=300 .tabset}
+-------------------------------------
+### Vetor
+
+Declaração de vetores.
+
+```{r}
+vet_int <- c(5L, 23L, 58L, 47L)
+vet_bool <- c(F, T, T, T)
+vet_num <- c(109.1, 165.3, 147.7, 182.5)
+vet_char<- c("Tim", "Bill", "Rosa", "Alex")
+```
+
+Também é possível declacar um vetor de números imaginários
+```{r}
+vet_img <- c(1.50i, 2.50i, 3.50i, 4.50i)
+```
+
+Verificando as classes dos vetores.<br>
+Nos vetores, todos os elementos são do mesmo tipo de dado.
+```{r}
+class(vet_int)
+class(vet_bool)
+class(vet_num)
+class(vet_char)
+class(vet_img)
+```
+
+Podemos verificar se os elementos do vetor vet_int são realmente inteiros.
+
+```{r}
+is.integer(vet_int)
+```
+Operações com vetores
+```{r}
+vet_int * 2 #multiplica cada elemento por 2
+vet_num / 3.4
+vet_int + 7
+```
+```{r}
+vet_int + c(3, 4, 1)
+```
+Como os dois vetores não possuiam o mesmo tamanho, o vetor menor foi repetido até completar o vetor maior. Isso é chamado *Reciclagem*.<br>
+
+Vetores aceitam apenas um tipo de dado, na seguinte ordem de precedência:
+character > complex > numeric > integer > logical
+```{r}
+x <- c(5L, 6.4)
+class(x) # o vetor ficou como numérico
+x <- c(5L, 6.4, "abc")
+class(x) # o vetor passou a ser character
+```
+Podemos forçar um vetor a ser de um tipo específico
+```{r}
+x <- -3:2
+x
+class(x)
+y <-as.numeric(x)
+y
+class(y)
+y <- as.logical(x)
+y # apenos 0 é false
+class(y)
+
+y <- as.character(x)
+y
+class(y)
+```
+
+
+### Matriz
+Declaração de uma matriz 4*3
+
+```{r}
+matriz <- matrix(c(1:12), nrow = 4, ncol = 3, byrow = T)
+matriz
+```
+
+
+Verificando a classe e as dimensões da matriz:
+```{r}
+paste("A classe é: ", class(matriz)[1] )
+dimensoes <- dim(matriz)
+paste("As dimensões da matriz são: ", dimensoes[1], "x", dimensoes[2])
+```
+Podemos criar uma matriz utilizando alguns dos vetores criados até agora.
+
+```{r}
+matriz2 <- matrix(c(vet_char, vet_int, vet_num), nrow = 4, byrow = F)
+matriz2
+```
+Como matrizes aceitam apenas um tipo de dado, acabamos transformando todos os elementos no tipo *character*.<br>
+Podemos utilizar a primeira coluna como nome das linhas, dessa forma, as demais variáveis vão assumir o tipo *numeric*, que é mais abrangente do que o tipo *integer*
+
+```{r}
+matriz2 <- matrix(c(vet_int, vet_num), nrow = 4, byrow = F)
+rownames(matriz2) <- vet_char
+matriz2
+```
+
+Agora, daremos nomes às colunas.
+```{r}
+colnames(matriz2) <- c("idade", "altura(cm)")
+matriz2
+```
+Subsets
+```{r}
+matriz2[1,] #seleciona a primeira linha
+matriz2[,2] #seleciona a segunda coluna
+matriz2[2,2] #seleciona o elemento da segunda linha e segunda coluna
+```
+
+Matriz transposta
+```{r}
+t(matriz2)
+```
+
+Multiplicação de matrizes
+```{r}
+m1 <- matrix(1:8, nrow = 4, ncol = 2)
+m2 <- matrix(10:17, nrow = 2, ncol = 4)
+m1 %*% m2 
+```
+
+Matriz inversa e diagonal principal
+```{r}
+m1 <- matrix(1:4, nrow = 2, ncol = 2)
+m1
+solve(m1) # matriz inversa, a matriz tem que ser quadrada
+diag(m1) #diagonal principal
+```
+
+### Dataframe
+Dataframes são similares à matrizes, mas possuem funções específicas como busca e indexação.
+Permitem que cada coluna seja de um tipo diferente.
+
+```{r}
+df <- data.frame(vet_int, vet_num, row.names = vet_char)
+colnames(df) <- c("idade", "altura(cm)")
+df
+```
+
+Verificando os tipos das colunas:
+```{r}
+str(df)
+```
+Podemos adicionar mais uma coluna:
+```{r}
+df <- cbind(df, maioridade = df$idade > 18)
+df
+```
+
+E uma nova linha
+```{r}
+df <- rbind(df, "Pam" = list(32L, 172, TRUE))
+df
+```
+As 2 primeiras linhas desse dataset:
+```{r}
+head(df, n=2)
+```
+As duas últimas linhas:
+```{r}
+tail(df, n=2)
+```
+
+
+### Lista
+Listas permitem que cada elemento seja de um tipo de dado.<br>
+Um conjunto de listas do mesmo tamanho forma um dataset.
+
+```{r}
+lista1 <- list("lista", 99L, 0.983, F)
+lista1
+```
+
+```{r}
+str(lista1)
+```
+
+Podemos criar uma lista com todos os vetores criados até agora
+```{r}
+lista2 <- list("boolean"=vet_bool, "char"=vet_char, vet_img, vet_int, vet_num)
+lista2
+```
+```{r}
+str(lista2)
+```
+Subsets:
+```{r}
+lista2[1] #retorna uma sub-lista
+lista2[[1]] #retorna o primeiro elemento da lista
+lista2$boolean #filtra pelo nome do elemento
+```
+
+### Fator
+Fatores servem para expressar variáveis categóricas.
+
+```{r}
+temperatura <- c("frio", "calor", "ameno", "calor", "ameno", "frio")
+temperatura.factor <- factor(temperatura, ordered = T, levels=c("frio", "ameno", "calor"))
+temperatura.factor
+```
+```{r}
+unclass(temperatura.factor)
+```
+```{r}
+levels(temperatura.factor)
+```
+
+Datas
+=======================================================================
+
+Data e hora
+```{r}
+dia_texto <- "01/08/2020 T 16:35:23"
+dia_date <- as.Date(dia_texto,format="%d/%m/%Y T %H:%M:%S",tz="America/Sao_Paulo")
+dia_date
+unclass(dia_date) #valor representa (01/08/2020) - (01/01/1970) em dias
+```
+POSIXct - número de segundos a partir de 01/01/1970
+
+```{r}
+dia.time1 <- as.POSIXct(dia_texto,format="%d/%m/%Y T %H:%M:%S",tz="America/Sao_Paulo") 
+dia.time1
+unclass(dia.time1) #valor representa (01/08/2020) - (01/01/1970) em segundos
+```
+POSIXlt - Lista com elementos ano, mês, dia, hora, entre outros
+```{r}
+dia.time2 <- as.POSIXlt(dia_texto,format="%d/%m/%Y T %H:%M:%S",tz="America/Sao_Paulo")
+dia.time2
+```
+```{r}
+unclass(dia.time2)
+```
+Como dia.time tem o elemeno chamado year, podemos fazer:
+```{r}
+dia.time2$year
+```
+O pacote lubridate facilita a manipulação de datas
+```{r}
+library(lubridate)
+
+ymd("20200801") #Cria uma data sabendo que está na ordem ano, mês, dia
+dmy("01.08.2020") #Cria uma data sabendo que está na ordem dia, mês, ano
+```
+```{r}
+nascimento <- ymd_hms(19990704130752)
+nascimento
+year(nascimento) #ano da data
+second(nascimento) #segundos da data
+wday(nascimento) #dia da semana
+wday(nascimento, label = T)
+month(nascimento, label = T)
+```
+Essas funções também podem ser usadas para atribuir componentes a datas:
+```{r}
+dia1 <- ymd(20180417, tz = "America/Sao_Paulo")
+hour(dia1) <- 13
+second(dia1) <- 24
+dia1
+```
+Fuso horário
+```{r}
+tz(dia1)
+
+with_tz(dia1, tzone = "US/Alaska") #data/hora equivalente em outro timezone
+
+dia1 <- force_tz(dia1, tz = "Asia/Singapore") #altera o timezone
+tz(dia1)
+```
+Operações com datas
+```{r}
+data_inicio <- dmy("03/03/1986")
+data_fim <- dmy("18/06/2017")
+
+intervalo1 <- interval(data_inicio, data_fim)
+intervalo1
+class(intervalo1)
+```
+Outras formas de obter o intervalo
+```{r}
+data_fim - data_inicio
+difftime(data_fim, data_inicio)
+difftime(data_fim, data_inicio, unit="secs")
+difftime(data_fim, data_inicio, unit="days")
+```
+É possível verificar se dois intervalos de tempo se sobrepõem
+```{r}
+intervalo2 <- dmy("04-03-2000") %--% dmy("20/03/2018")  # Operador %--% para intervalo
+int_overlaps(intervalo1, intervalo2)
+```
+
+Aritmética com datas
+```{r}
+days(1) #cria um dia
+ddays(1) # cria uma duração de um dia em segundos
+
+data_inicio + ddays(1)
+data_inicio + years(2)
+
+#Criar datas recorrentes
+data_inicio + months(1:12)
+
+#numero de dias em um intervalo
+intervalo1 / days(1)
+
+as.period(intervalo1, unit = "days")
+```
+
+Amostras e simulações
+=======================================================================
+
+Para obter números aleatórioa seguindo uma distribuição uniforme, em que a probabilidade de se gerar qualquer ponto contido no espaço amostral é proporcional ao tamanho do intervalo
+
+#### Histograma distribuição uniforme
+```{r}
+set.seed(20)
+margin.param <- list(
+  l = 50,
+  r = 25,
+  b = 10,
+  t = 10,
+  pad = 4
+)
+aleatorios <- ~runif(2000, min = 0, max = 3)
+fig <- plot_ly(x = aleatorios, type = "histogram")
+fig <- fig %>% layout(autosize = F, width = 500, height = 300, margin = margin.param )
+fig
+```
+<br>
+
+#### Probabilidade em uma distribuição uniforme
+Avaliar a probabilidade uniforme de um valor no intervalo
+```{r}
+x <- seq(0, 100, by = 1)
+y <- dunif(x, min = 10, max = 50) 
+fig <- plot_ly(x =x, y=y, mode = 'lines+markers')
+fig <- fig %>% layout(autosize = F, width = 500, height = 300, margin = margin.param )
+fig
+```
+
+#### Probabilidade acumulada em uma distribuição uniforme
+Avaliar a probabilidade acumulada uniforme de um valor dentro do intervalo
+```{r}
+x <- seq(0, 100, by = 1)
+y <- punif(x, min = 10, max = 50)
+fig <- plot_ly(x =x, y=y, mode = 'lines+markers')
+fig <- fig %>% layout(autosize = F, width = 500, height = 300, margin = margin.param )
+fig
+```
+
+<hr>
+Para pegar uma amostra a partir de um domínio
+```{r}
+amostra = c( "T", "R", "I", "A", "N", "G", "U", "L", "O", "S")
+sample(amostra, replace = FALSE) #amostra sem repetição de valores
+sample(amostra, replace = TRUE) #amostra com repetição de valores
+sample(amostra, size = 20, replace = T, prob = c(1,2,1,1,4,3,1,1,1,1)) #5 amostras
+#as letras R,N e G estão com pesos maiores, com maior probabilidade de serem sorteados
+```
+<hr>
+
+Para fazer simulações, podemos usar as distribuições normal e binomial para amostras com valores mais "naturais".
+
+#### Números aleatórios seguindo uma distribuição normal
+```{r}
+set.seed(902)
+aleatorios <- data.frame(nums = rnorm(2000))
+
+fig <- plot_ly(data = aleatorios, y=aleatorios$nums, type = 'scatter', mode = 'markers')
+fig <- fig %>% layout(autosize = F, width = 500, height = 300, margin = margin.param )
+fig
+```
+
+
+```{r}
+p <- ggplot(aleatorios, aes(nums)) + 
+  geom_histogram(aes(y = ..density..), alpha = 0.7, fill = "#333333") +
+  geom_density(fill = "#ff4d4d", alpha = 0.5) + 
+  theme(panel.background = element_rect(fill = '#ffffff'))
+  
+  
+  ggplotly(p) %>% 
+  layout(autosize = F, width = 500, height = 300, margin = margin.param )
+
+```
+
+Alterando os valores de média e desvio padrão, temos distribuições normais de diferentes formatos
+```{r}
+aleatorios2 <- data.frame(nums = rnorm(2000, mean = 1, sd = 1.5))
+aleatorios2$name <- 'mean=1,sd=1.5'
+aleatorios3 <- data.frame(nums = rnorm(2000, mean = 2, sd = 3), name = 'mean=2,sd=3')
+
+aleatorios$name <- 'mean=0,sd=1'
+
+aleatorios.df <- rbind(aleatorios, aleatorios2, aleatorios3)
+p <- ggplot(aleatorios.df, aes(nums, fill=name)) + geom_density(alpha = 0.2)
+
+ggplotly(p) %>% 
+  layout(autosize = F, width = 500, height = 300, margin = margin.param )
+
+
+```
+
+
+#### Probabilidade em uma distribuição normal
+Dada uma média e um desvio padrão, podemos avaliar a propabilidade da normal de um valor
+```{r}
+x <- seq(- 5, 5, by = 0.05) 
+y <- dnorm(x, mean = 0, sd=1) 
+ggplotly(p) %>% 
+  layout(autosize = F, width = 500, height = 300, margin = margin.param )
+
+```
+
+
+
+#### Probabilidade acumulada em uma distribuição normal
+Para avaliar a probabilidade acumulada da normal de um valor
+```{r}
+x <- seq(- 5, 5, by = 0.05)
+y <- pnorm(x, mean = 0, sd = 1)
+#plot_ly(x =x, y=y, mode = 'lines+markers')
+```
+
+#### Exemplo de simulação de um modelo linear
+
+Considerando o seguinte modelo linear:
+$$y=\beta_0+\beta_1x+\varepsilon$$
+em que
+$$\beta_0=0.5$$
+$$\beta_1=2.0$$
+$$x\sim \mathcal{N}(0;1^2)$$
+$$\varepsilon\sim \mathcal{N}(0; 2^2)$$
+
+```{r}
+set.seed(346)
+x = rnorm(200, mean = 0, sd = 1)
+e = rnorm(200, mean = 0, sd = 2)
+y = 0.5 + 2 * x + e
+
+fig <- plot_ly( x = x, y = y, type = "scatter" )
+fig <- fig %>% layout(autosize = F, width = 500, height = 300, margin = margin.param )
+fig
+```
+
+
+Loops e Funções
+=======================================================================
+
+Row {data-height=650 data-width=300 .tabset}
+-------------------------------------
+### IF e ELSE
+
+```{r}
+x<-0
+
+if(x > 0){
+  sinal <- "positivo"
+}else if(x == 0){
+  sinal <- "neutro"
+}else{
+  sinal <- "negativo"
+}
+
+sinal
+```
+
+```{r}
+ifelse(1>0, "verdade", "mentira")
+```
+### Loops
+
+Loop para calcular o valor acumulado de passageiros ao longo do tempo. <br>
+Os valores são armazenados em um vetor
+```{r}
+acumulado <- c(0)
+for(i in AirPassengers){
+  acumulado <- c(acumulado, tail(acumulado, 1)+i) #adiciona ao vetor a soma do último valor com a quantidade de passageiros do registro
+}
+acumulado <- acumulado[-1] #Remove o 0
+acumulado
+```
+
+### Funções
+
+O R já possui muitas funções implementadas em suas bibliotecas como por exemplo a função mean(), que calcula a média.
+```{r}
+mean(1:10)
+#View(mean) #Podemos ver a implementação dessas funções
+```
+Podemos passar funções como parâmetros de outras funções
+```{r}
+round(mean(1:10)) #Arredonda um valor numérico
+```
+Podemos desenvolver nossas próprias funções. Por exemplo, a função fatorial recursiva.
+```{r}
+fatorial <- function(n){
+  if(n==1 || n==0){
+    return(1)
+  }
+  return(n * fatorial(n-1))
+}
+
+fatorial(5)
+fatorial(10)
+```
+<br>
+
+
+Obtendo dados no R
+=======================================================================
+
+Row {data-height=650 data-width=300 .tabset}
+-------------------------------------
+### Download
+
+Podemos fazer download de datasets da internet.<br>
+A função abaixo, verifica se a pasta 'data' existe, se não existir, cria a pasta e em seguida faz o download do arquivo passado na url e armazena nela.
+```{r}
+download.data <- function(file.url, file.local = NA){
+  if(!file.exists('data')){
+    dir.create('data')
+  }
+  if(is.na(file.local)){
+    file.local = file.path('./data', basename(file.url))
+  }
+  download.file(url = file.url, destfile = file.local , mode='wb')
+}
+```
+
+Utilizando a função para baixar um arquivo csv
+```{r}
+download.data('https://storage.googleapis.com/ds-publico/Copas-Jogadores.csv')
+```
+
+### Leitura de arquivos
+Para ler arquivos csv
+```{r}
+library(readr)
+Copas_Jogadores <- read_csv("data/Copas-Jogadores.csv", 
+                            col_types = cols(MatchID = col_integer(), 
+                                             `Shirt Number` = col_integer()), 
+                            na = "NA", skip = 5)
+Copas_Jogadores
+
+class(Copas_Jogadores)
+```
+
+Para ler arquivo excel
+```{r}
+library(openxlsx)
+download.data('https://storage.googleapis.com/ds-publico/cameras.baltimore.xlsx')
+baltimore <- read.xlsx("data/cameras.baltimore.xlsx")
+
+str(baltimore)
+```
+
+<br>
+
+Manipulação de dados
+=======================================================================
+
+Row {data-height=650 data-width=300 .tabset}
+-------------------------------------
+### Mutate
+
+O pacote **dplyr** possui funções que facilitam a manipulação de dados.<br>
+A função mutate adiciona uma coluna ao data frame
+
+```{r}
+library(dplyr)
+
+star.wars.modificado <- starwars %>% 
+  mutate(imc = mass / ((height / 100) ^ 2))
+
+star.wars.modificado %>% glimpse()
+  
+```
+
+### Filter
+Para filtrar os dados de um data frame
+```{r}
+starwars %>% filter(species == "Droid") %>% print(n = 10, width = Inf)
+
+star.wars.modificado %>% filter(imc > 25) %>% glimpse()
+```
+
+<br>
+
+### Select
+Para ordenar e filtrar colunas
+```{r}
+starwars %>% select(name, ends_with("color"))
+
+star.wars.modificado %>% filter(imc > 25) %>% select(name:species, -ends_with("color"), imc)
+```
+
+Nesse último filtro utilizamos ':' para indicar uma sequência de colunas conhecidas e o '-' para sinalizar que queríamos excluir as colunas com nomes terminados com 'color'.
+<br>
+
+### Arrange
+Utilizado para reodenar as linhas de um data frame
+```{r}
+starwars %>% arrange(desc(mass)) %>% select(name, ends_with("color"), mass)
+
+star.wars.modificado %>% arrange(imc) %>% select(name, imc)
+```
+
+<br>
+
+### Agregações
+
+```{r}
+#Agrupando, sumarizando e filtrando
+starwars %>% group_by(species) %>% summarise( count = n(), mass = mean(mass, na.rm = TRUE) ) %>% filter(count > 1) %>% arrange(count)
+
+```
+
+Primeiro, agrupamos por espécies, depois sumarizamos pelas colunas count, que utiliza a função 'n()'para apresentar o tamanho do grupo, e a coluna mass que apresenta a média da massa desse grupo, removendo os valores não disponíveis.
+O próximo passo foi filtrar para mostrar apenas os grupos com mais de 1 elemento, e por fim, ordenar as linhas de forma crescente, de acordo com a quantidade de elementos nos grupos.
